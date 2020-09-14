@@ -2,7 +2,6 @@ import sys
 import math
 from enum import Enum
 
-
 ARROWS = ("<", ">", "^", "v")
 
 
@@ -20,11 +19,11 @@ class Tile(Position):
     def __init__(self, x: int, y: int, tile_type: str):
         super().__init__(x, y)
         self.tile_type = tile_type
-    
+
     def __repr__(self):
         return "Tile {} @ ({}, {})".format(self.tile_type, self.x, self.y)
-    
-    def __eq__(self, other) ->  bool:
+
+    def __eq__(self, other) -> bool:
         assert isinstance(other, Tile)
         return self.x == other.x and self.y == other.y
 
@@ -38,26 +37,31 @@ class Grid:
             self.grid.append(input())
             err(self.grid[-1])
         err("------------------")
-    
+
     def get_path_length(self, start_position: Position) -> int:
         start_tile = self.get_tile(start_position)
         current_tile = start_tile
-        #err("Start = {}".format(current_tile))
+        err("Start = {}".format(current_tile))
         path_length = 1
-        while current_tile.tile_type in ARROWS and (path_length > 1 and current_tile != start_tile):
-            #err(current_tile)
-            current_tile = self.next_tile(current_tile)
-            #err("next tile = {}".format(current_tile))
-            path_length+=1
+        while current_tile.tile_type in ARROWS and (path_length == 1 or current_tile != start_tile):
+            err(current_tile)
+            try:
+                current_tile = self.next_tile(current_tile)
+            except AssertionError:
+                err("Going out of bound")
+                return self.height * self.width + 1
+
+            err("next tile = {}".format(current_tile))
+            path_length += 1
 
         if current_tile.tile_type == "T":
             return path_length
         else:
             return self.height * self.width + 1
-    
+
     def get_tile(self, position: Position) -> Tile:
         return Tile(position.x, position.y, self.grid[position.x][position.y])
-    
+
     def next_tile(self, tile: Tile):
         assert tile.tile_type in ARROWS
         if tile.tile_type == "^":
@@ -86,17 +90,17 @@ class Game:
         self.list_maps = list()
         for i in range(self.n_maps):
             self.list_maps.append(Grid(self.width, self.height))
-    
+
     def get_best_map(self):
         best_length_path = self.width * self.height + 1
         best_map_index = -1
         for map_index, current_map in enumerate(self.list_maps):
             path_length = current_map.get_path_length(self.start)
-            #err("~~~~~~~~~~~~~~~~~")
+            err("~~~~~~~~~~~~~~~~~")
             if path_length < best_length_path:
                 best_length_path = path_length
                 best_map_index = map_index
-        
+
         if best_map_index >= 0:
             return best_map_index
         else:
